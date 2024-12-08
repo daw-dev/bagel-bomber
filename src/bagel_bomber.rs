@@ -13,6 +13,7 @@ enum PacketHandler<'a> {
     Nack(NackType),
     FloodRequest(Packet),
     Ignore,
+    SendToController(Packet),
 }
 
 pub struct BagelBomber {
@@ -123,6 +124,11 @@ impl BagelBomber {
                     self.handle_flood_request(packet.routing_header, packet.session_id, request);
                 }
             }
+            PacketHandler::SendToController(_) => {
+                self.controller_send
+                    .send(DroneEvent::ControllerShortcut(packet.clone()))
+                    .ok();
+            }
             PacketHandler::Ignore => {}
         }
     }
@@ -156,7 +162,16 @@ impl BagelBomber {
                         PacketHandler::Forward(packet, sender)
                     }
                 }
-                None => PacketHandler::Nack(NackType::ErrorInRouting(next_hop)),
+                None => {
+                    match &packet.pack_type {
+                        PacketType::Ack(_) | PacketType::Nack(_) | PacketType::FloodResponse(_) => {
+                            PacketHandler::SendToController(packet)
+                        }
+                        _ => {
+                            PacketHandler::Nack(NackType::ErrorInRouting(next_hop))
+                        }
+                    }
+                },
             }
         }
     }
