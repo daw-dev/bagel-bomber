@@ -9,11 +9,11 @@ use wg_2024::network::{NodeId, SourceRoutingHeader};
 use wg_2024::packet::{FloodRequest, Nack, NackType, NodeType, Packet, PacketType};
 
 enum PacketHandler<'a> {
-    Forward(Packet, &'a Sender<Packet>),
+    Forward(&'a Sender<Packet>),
     Nack(NackType),
-    FloodRequest(Packet),
+    FloodRequest,
     Ignore,
-    SendToController(Packet),
+    SendToController,
 }
 
 pub struct BagelBomber {
@@ -96,8 +96,8 @@ impl BagelBomber {
 
     fn handle_packet(&mut self, packet: Packet) {
         match self.create_packet_handler(packet.clone()) {
-            PacketHandler::Forward(to_forward, sender) => {
-                self.forward(to_forward, sender);
+            PacketHandler::Forward(sender) => {
+                self.forward(packet, sender);
             }
             PacketHandler::Nack(nack) => {
                 let fragment_index = packet.get_fragment_index();
@@ -119,12 +119,12 @@ impl BagelBomber {
                     packet.session_id,
                 );
             }
-            PacketHandler::FloodRequest(packet) => {
+            PacketHandler::FloodRequest => {
                 if let PacketType::FloodRequest(request) = packet.pack_type {
                     self.handle_flood_request(packet.routing_header, packet.session_id, request);
                 }
             }
-            PacketHandler::SendToController(_) => {
+            PacketHandler::SendToController => {
                 self.controller_send
                     .send(DroneEvent::ControllerShortcut(packet.clone()))
                     .ok();
@@ -135,7 +135,7 @@ impl BagelBomber {
 
     fn create_packet_handler(&self, packet: Packet) -> PacketHandler {
         if let PacketType::FloodRequest(_) = &packet.pack_type {
-            PacketHandler::FloodRequest(packet)
+            PacketHandler::FloodRequest
         } else if packet.routing_header.is_empty() {
             PacketHandler::Ignore
         } else if packet.routing_header.current_hop() != Some(self.id) {
@@ -156,16 +156,16 @@ impl BagelBomber {
                             PacketHandler::Nack(NackType::Dropped)
                         } else {
                             drone_gui::drop_bagel(self.id, false);
-                            PacketHandler::Forward(packet, sender)
+                            PacketHandler::Forward(sender)
                         }
                     } else {
-                        PacketHandler::Forward(packet, sender)
+                        PacketHandler::Forward(sender)
                     }
                 }
                 None => {
                     match &packet.pack_type {
                         PacketType::Ack(_) | PacketType::Nack(_) | PacketType::FloodResponse(_) => {
-                            PacketHandler::SendToController(packet)
+                            PacketHandler::SendToController
                         }
                         _ => {
                             PacketHandler::Nack(NackType::ErrorInRouting(next_hop))
