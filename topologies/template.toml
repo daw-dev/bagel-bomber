@@ -1,0 +1,51 @@
+[[drone]]
+id = 1
+pdr = 0.1
+
+[[drone]]
+id = 2
+pdr = 0.25
+
+[[drone]]
+id = 3
+pdr = 0.14
+
+[[drone]]
+id = 4
+pdr = 0.03
+
+[[drone]]
+id = 5
+pdr = 0.05
+
+[[drone]]
+id = 6
+pdr = 0.03
+
+[[drone]]
+id = 7
+pdr = 0.05
+
+[[drone]]
+id = 8
+pdr = 0.03
+
+[[drone]]
+id = 9
+pdr = 0.14
+
+[[drone]]
+id = 10
+pdr = 0.1
+
+[[client]]
+id = 100
+
+[[client]]
+id = 101
+
+[[server]]
+id = 102
+
+[[server]]
+id = 103

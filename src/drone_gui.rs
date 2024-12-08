@@ -162,42 +162,38 @@ mod drone_http_server {
             if let Ok(id) = text.parse::<NodeId>() {
                 let mut last_check = SystemTime::now() - Duration::from_secs(10);
                 let mut last_pdr = 0.0;
-                loop {
-                    if let Some(gui) = GUIS.lock().unwrap().get(&id) {
-                        let drops = gui
-                            .drops
-                            .iter()
-                            .filter(|drop| drop.time > last_check)
-                            .map(|drop| {
-                                format!(
-                                    "{{ \"exploded\": {}, \"time\": {} }}",
-                                    drop.exploded,
-                                    drop.time
-                                        .duration_since(starting_time)
-                                        .unwrap()
-                                        .as_secs_f32()
-                                )
-                            })
-                            .collect::<Vec<String>>()
-                            .join(", ");
+                while let Some(gui) = GUIS.lock().unwrap().get(&id) {
+                    let drops = gui
+                        .drops
+                        .iter()
+                        .filter(|drop| drop.time > last_check)
+                        .map(|drop| {
+                            format!(
+                                "{{ \"exploded\": {}, \"time\": {} }}",
+                                drop.exploded,
+                                drop.time
+                                    .duration_since(starting_time)
+                                    .unwrap()
+                                    .as_secs_f32()
+                            )
+                        })
+                        .collect::<Vec<String>>()
+                        .join(", ");
 
-                        if gui.pdr != last_pdr || !drops.is_empty() {
-                            let response =
-                                format!("{{ \"pdr\": {}, \"drops\": [ {} ] }}", gui.pdr, drops);
-                            if web_socket.write(Message::Text(response)).is_err() {
-                                break;
-                            }
-
-                            web_socket.flush().ok();
+                    if gui.pdr != last_pdr || !drops.is_empty() {
+                        let response =
+                            format!("{{ \"pdr\": {}, \"drops\": [ {} ] }}", gui.pdr, drops);
+                        if web_socket.write(Message::Text(response)).is_err() {
+                            break;
                         }
 
-                        last_check = SystemTime::now();
-                        last_pdr = gui.pdr;
-
-                        thread::sleep(Duration::from_secs(200));
-                    } else {
-                        break;
+                        web_socket.flush().ok();
                     }
+
+                    last_check = SystemTime::now();
+                    last_pdr = gui.pdr;
+
+                    thread::sleep(Duration::from_secs(200));
                 }
 
                 println!("WebSocket connection closed");
@@ -216,14 +212,14 @@ mod drone_http_server {
                 (Method::Get, "/script") => handle_script(),
                 (Method::Get, "/bagel.png") => handle_icon(),
                 (Method::Get, path)
-                    if path.starts_with("/")
-                        && path[1..].parse::<NodeId>().is_ok()
-                        && guis.get(&path[1..].parse::<NodeId>().unwrap()).is_some() =>
-                {
-                    let id = path[1..].parse::<NodeId>().unwrap();
-                    let drone_gui = guis.get(&id).unwrap();
-                    handle_drone(drone_gui)
-                }
+                if path.starts_with("/")
+                    && path[1..].parse::<NodeId>().is_ok()
+                    && guis.contains_key(&path[1..].parse().unwrap()) =>
+                    {
+                        let id = path[1..].parse::<NodeId>().unwrap();
+                        let drone_gui = guis.get(&id).unwrap();
+                        handle_drone(drone_gui)
+                    }
                 _ => handle_not_found(),
             };
 
