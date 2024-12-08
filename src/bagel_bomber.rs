@@ -1,6 +1,6 @@
 use super::drone_gui;
 use crate::coin_toss;
-use crossbeam_channel::{select, unbounded, Receiver, Sender};
+use crossbeam_channel::{select_biased, unbounded, Receiver, Sender};
 use std::collections::{HashMap, HashSet};
 use std::mem;
 use wg_2024::controller::*;
@@ -59,15 +59,15 @@ impl BagelBomber {
         println!("drone {} flying", self.id);
         drone_gui::add_gui(self.id, self.pdr);
         while self.active {
-            select! {
-                recv(self.packet_recv) -> packet_res => {
-                    if let Ok(packet) = packet_res {
-                        self.handle_packet(packet);
-                    }
-                }
+            select_biased! {
                 recv(self.controller_recv) -> command_res => {
                     if let Ok(command) = command_res {
                         self.handle_command(command);
+                    }
+                }
+                recv(self.packet_recv) -> packet_res => {
+                    if let Ok(packet) = packet_res {
+                        self.handle_packet(packet);
                     }
                 }
             }
