@@ -198,33 +198,32 @@ fn continuous_ping() {
 
         thread::sleep(Duration::from_millis(500));
 
-        loop {
-            for in_packet in params.packet_recv.try_iter() {
-                if let PacketType::MsgFragment(request) = in_packet.pack_type {
-                    println!("Server {} received {}", params.id, request);
+        for in_packet in params.packet_recv.iter() {
+            if let PacketType::MsgFragment(request) = in_packet.pack_type {
+                println!("Server {} received {}", params.id, request);
 
-                    let packet = Packet::new_fragment(
-                        SourceRoutingHeader::with_first_hop(vec![50, 8, 7, 5, 3, 40]),
-                        0,
-                        request.clone(),
-                    );
+                let packet = Packet::new_fragment(
+                    SourceRoutingHeader::with_first_hop(vec![50, 8, 7, 5, 3, 40]),
+                    0,
+                    request.clone(),
+                );
 
-                    let send = params.packet_send.get(&8).unwrap();
+                let send = params.packet_send.get(&8).unwrap();
 
-                    send.send(packet).ok();
+                send.send(packet).ok();
 
-                    if request.fragment_index == request.total_n_fragments - 1 {
-                        while !send.is_empty() {
-                            thread::sleep(Duration::from_millis(100));
-                        }
-                        println!("Server {} ending simulation", params.id);
-                        return params.end_simulation();
+                if request.fragment_index == request.total_n_fragments - 1 {
+                    while !send.is_empty() {
+                        thread::sleep(Duration::from_millis(100));
                     }
+                    break;
                 }
             }
-
-            thread::sleep(Duration::from_millis(1000));
         }
+        println!("Server {} ending simulation", params.id);
+
+        thread::sleep(Duration::from_millis(1000));
+        params.end_simulation()
     });
 
     create_test_environment(

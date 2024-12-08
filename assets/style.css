@@ -1,0 +1,68 @@
+body {
+    background: #224;
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    text-align: center;
+}
+
+.drone-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.drone-link {
+    text-align: center;
+    width: 50%;
+    min-width: 300px;
+    background: #fff4;
+    padding: 1rem;
+    color: white;
+    text-decoration: none;
+    border-radius: 1rem;
+    transition: background-color 250ms ease;
+}
+
+.drone-link:hover {
+    background: #fff5;
+}
+
+#field {
+    position: relative;
+    overflow: hidden;
+    width: 50%;
+    max-width: 500px;
+    aspect-ratio: 1/1;
+    background-color: green;
+    margin: auto;
+}
+
+.field-element {
+    position: absolute;
+    animation: move forwards linear;
+    --size: 1.5rem;
+    font-size: var(--size);
+}
+
+.field-element.small {
+    --size: 1rem;
+}
+
+.drop {
+    background-color: #fbb5;
+    border-radius: 50%;
+    padding: .1rem;
+}
+
+@keyframes move {
+    from {
+        top: calc(var(--size) * -1);
+    }
+    to {
+        top: 100%;
+    }
+}
