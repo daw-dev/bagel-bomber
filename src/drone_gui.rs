@@ -232,10 +232,10 @@ mod drone_http_server {
 
     fn handle_root(guis: HashMap<NodeId, DroneGUI>) -> Response<Cursor<Vec<u8>>> {
         let html_body = format!(
-            "<h1>Drone GUI</h1><div class=\"drone-list\">{}</div>",
+            "<h1>Bagel Bomber GUI</h1><div class=\"drone-list\">{}</div>",
             guis.values().map(|gui| gui.anchor()).collect::<String>()
         );
-        Response::from_string(wrap_html("Drone GUI", html_body))
+        Response::from_string(wrap_html("Bagel Bomber GUI", html_body))
             .with_header("Content-Type: text/html".parse::<Header>().unwrap())
     }
 
@@ -351,7 +351,7 @@ mod drone_http_server {
 
         fn anchor(&self) -> String {
             format!(
-                "<a class=\"drone-link\" href=\"{}\">Drone {}</a>",
+                "<a class=\"drone-link\" href=\"{}\">Bagel Bomber {}</a>",
                 self.url(),
                 self.id
             )
@@ -362,8 +362,8 @@ mod drone_http_server {
         }
 
         fn drone_page(&self) -> Response<Cursor<Vec<u8>>> {
-            let html_body = format!("<h1>Drone {}</h1><div id=\"field\" data-id=\"{}\" data-pdr=\"{}\"></div><script src=\"/script\" defer></script>", self.id, self.id, self.pdr);
-            Response::from_string(wrap_html(&format!("Drone {}", self.id), html_body))
+            let html_body = format!("<h1>Bagel Bomber {}</h1><div id=\"field\" data-id=\"{}\" data-pdr=\"{}\"></div><script src=\"/script\" defer></script>", self.id, self.id, self.pdr);
+            Response::from_string(wrap_html(&format!("Bagel Bomber {}", self.id), html_body))
                 .with_header("Content-Type: text/html".parse::<Header>().unwrap())
         }
     }
