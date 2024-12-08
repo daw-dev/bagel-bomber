@@ -68,7 +68,6 @@ fn flooding() {
 
 #[test]
 fn client_server_ping() {
-    // TODO: this test sometimes freezes (maybe due to an infinite loop?)
     let client = TestNode::with_node_id(40, vec![3], |params| {
         thread::sleep(Duration::from_millis(1000));
         println!("Client running");
