@@ -163,8 +163,6 @@ mod drone_http_server {
                 let mut last_check = SystemTime::now() - Duration::from_secs(10);
                 let mut last_pdr = 0.0;
                 while let Some(gui) = GUIS.lock().unwrap().get(&id) {
-                    println!("there is a gui");
-
                     let drops = gui
                         .drops
                         .iter()
@@ -185,8 +183,6 @@ mod drone_http_server {
                     if gui.pdr != last_pdr || !drops.is_empty() {
                         let response =
                             format!("{{ \"pdr\": {}, \"drops\": [ {} ] }}", gui.pdr, drops);
-
-                        println!("Sending: {}", response);
 
                         if web_socket.write(Message::Text(response)).is_err() {
                             break;

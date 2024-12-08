@@ -42,10 +42,12 @@ h1 {
 }
 
 .field-element {
+    --field-position: 0;
     position: absolute;
     animation: move forwards linear;
-    --size: 1.5rem;
+    --size: 1.75rem;
     font-size: var(--size);
+    left: calc(var(--field-position) * 100%);
 }
 
 .field-element.small {

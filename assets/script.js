@@ -3,7 +3,7 @@ const id = Number(field.dataset.id);
 let pdr = Number(field.dataset.pdr);
 field.removeAttribute("data-pdr");
 const dropQueue = [];
-const animationTime = 2000;
+const animationTime = 1500;
 const styleSheet = document.styleSheets[0];
 styleSheet.insertRule(`.field-element { animation-duration: ${animationTime}ms; }`, styleSheet.cssRules.length);
 const maxEnvironmentSpawnDelay = 500;
@@ -12,7 +12,7 @@ function addElementToField(emoji, isSmall = false) {
     const fieldElement = field.appendChild(document.createElement("div"));
     fieldElement.classList.add("field-element");
     fieldElement.innerHTML = emoji;
-    fieldElement.style.left = Math.random() * 100 + "%";
+    fieldElement.style.setProperty("--field-position", Math.random().toString());
     if (isSmall) {
         fieldElement.classList.add("small");
     }
