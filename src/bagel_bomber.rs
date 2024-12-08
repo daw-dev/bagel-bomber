@@ -162,15 +162,11 @@ impl BagelBomber {
                         PacketHandler::Forward(sender)
                     }
                 }
-                None => {
-                    match &packet.pack_type {
-                        PacketType::Ack(_) | PacketType::Nack(_) | PacketType::FloodResponse(_) => {
-                            PacketHandler::SendToController
-                        }
-                        _ => {
-                            PacketHandler::Nack(NackType::ErrorInRouting(next_hop))
-                        }
+                None => match &packet.pack_type {
+                    PacketType::Ack(_) | PacketType::Nack(_) | PacketType::FloodResponse(_) => {
+                        PacketHandler::SendToController
                     }
+                    _ => PacketHandler::Nack(NackType::ErrorInRouting(next_hop)),
                 },
             }
         }

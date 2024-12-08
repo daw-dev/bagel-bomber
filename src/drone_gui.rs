@@ -213,14 +213,14 @@ mod drone_http_server {
                 (Method::Get, "/script") => handle_script(),
                 (Method::Get, "/bagel.png") => handle_icon(),
                 (Method::Get, path)
-                if path.starts_with("/")
-                    && path[1..].parse::<NodeId>().is_ok()
-                    && guis.contains_key(&path[1..].parse().unwrap()) =>
-                    {
-                        let id = path[1..].parse::<NodeId>().unwrap();
-                        let drone_gui = guis.get(&id).unwrap();
-                        handle_drone(drone_gui)
-                    }
+                    if path.starts_with("/")
+                        && path[1..].parse::<NodeId>().is_ok()
+                        && guis.contains_key(&path[1..].parse().unwrap()) =>
+                {
+                    let id = path[1..].parse::<NodeId>().unwrap();
+                    let drone_gui = guis.get(&id).unwrap();
+                    handle_drone(drone_gui)
+                }
                 _ => handle_not_found(),
             };
 

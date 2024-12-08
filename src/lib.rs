@@ -5,4 +5,4 @@ mod drone_gui;
 #[cfg(test)]
 mod tests;
 
-pub use bagel_bomber::BagelBomber as BagelBomber;
+pub use bagel_bomber::BagelBomber;

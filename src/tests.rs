@@ -1,20 +1,38 @@
-use std::collections::HashMap;
+use crate::bagel_bomber::BagelBomber;
+use crossbeam_channel::{Receiver, Sender};
 use drone_tester::{create_test_environment, Node, PDRPolicy, TestNode};
+use std::collections::HashMap;
 use std::thread;
 use std::time::Duration;
-use crossbeam_channel::{Receiver, Sender};
 use wg_2024::controller::{DroneCommand, DroneEvent};
 use wg_2024::drone::Drone;
 use wg_2024::network::{NodeId, SourceRoutingHeader};
 use wg_2024::packet::NodeType::Client;
 use wg_2024::packet::{FloodRequest, Fragment, Packet, PacketType, FRAGMENT_DSIZE};
-use crate::bagel_bomber::BagelBomber;
 
-pub fn create_bagel_bomber(id: NodeId, controller_send: Sender<DroneEvent>, controller_recv: Receiver<DroneCommand>, packet_recv: Receiver<Packet>, packet_send: HashMap<NodeId, Sender<Packet>>, pdr: f32) -> Box<dyn Node> {
-    Box::new(BagelBomber::new(id, controller_send, controller_recv, packet_recv, packet_send, pdr))
+pub fn create_bagel_bomber(
+    id: NodeId,
+    controller_send: Sender<DroneEvent>,
+    controller_recv: Receiver<DroneCommand>,
+    packet_recv: Receiver<Packet>,
+    packet_send: HashMap<NodeId, Sender<Packet>>,
+    pdr: f32,
+) -> Box<dyn Node> {
+    Box::new(BagelBomber::new(
+        id,
+        controller_send,
+        controller_recv,
+        packet_recv,
+        packet_send,
+        pdr,
+    ))
 }
 
-pub fn create_none_client_server(_id: NodeId, _packet_recv: Receiver<Packet>, _packet_send: HashMap<NodeId, Sender<Packet>>) -> Option<Box<dyn Node>> {
+pub fn create_none_client_server(
+    _id: NodeId,
+    _packet_recv: Receiver<Packet>,
+    _packet_send: HashMap<NodeId, Sender<Packet>>,
+) -> Option<Box<dyn Node>> {
     None
 }
 
