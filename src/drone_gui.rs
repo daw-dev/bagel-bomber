@@ -102,7 +102,7 @@ mod drone_http_server {
 
     fn http_daemon() {
         println!("Visit http://localhost:{}", DRONE_GUI_PORT);
-        let http_server = Server::http(format!("localhost:{}", DRONE_GUI_PORT)).unwrap();
+        let http_server = Server::http(format!("0.0.0.0:{}", DRONE_GUI_PORT)).unwrap();
         loop {
             if let Ok(Some(request)) = http_server.try_recv() {
                 handle_http_request(request, GUIS.lock().unwrap().clone());
@@ -117,7 +117,7 @@ mod drone_http_server {
     }
 
     fn web_socket_daemon() {
-        let tcp_listener = TcpListener::bind(format!("localhost:{}", DRONE_GUI_PORT + 1)).unwrap();
+        let tcp_listener = TcpListener::bind(format!("0.0.0.0:{}", DRONE_GUI_PORT + 1)).unwrap();
         tcp_listener.set_nonblocking(true).ok();
         let starting_time = SystemTime::now() - Duration::from_secs(5);
         loop {
@@ -131,9 +131,7 @@ mod drone_http_server {
                     });
                     SERVER_JOIN_HANDLES.lock().unwrap().push(web_socket_updates);
                 }
-                Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {
-                    thread::sleep(Duration::from_millis(10));
-                }
+                Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {}
                 Err(err) => {
                     println!("Error: {}", err);
                 }
@@ -281,10 +279,6 @@ mod drone_http_server {
 </head>
 <body>
     {body}
-    <div class="drome-bagel-model" align-self="center">
-     <iframe class="spline-frame" src='https://my.spline.design/mydocblue-36988766ffc8b3b87439da3b120502ab/'
-      frameborder='0' width=500px height=800px align-self="center"></iframe>
-     </div>
 </body>
 </html>
 "#
@@ -362,7 +356,17 @@ mod drone_http_server {
         }
 
         fn drone_page(&self) -> Response<Cursor<Vec<u8>>> {
-            let html_body = format!("<h1>Bagel Bomber {}</h1><div id=\"field\" data-id=\"{}\" data-pdr=\"{}\"></div><script src=\"/script\" defer></script>", self.id, self.id, self.pdr);
+            let html_body = format!(
+                r#"
+<h1>Bagel Bomber {}</h1>
+<div class="container">
+    <div id="field" data-id="{}" data-pdr="{}"></div>
+    <a class="back-button" href="/">Back to Hub</a>
+</div>
+<script src="/script" defer></script>
+"#,
+                self.id, self.id, self.pdr
+            );
             Response::from_string(wrap_html(&format!("Bagel Bomber {}", self.id), html_body))
                 .with_header("Content-Type: text/html".parse::<Header>().unwrap())
         }

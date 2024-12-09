@@ -95,7 +95,8 @@ dynamicInterval(() => {
     addEnvironmentEmoji();
 }, () => Math.random() * maxEnvironmentSpawnDelay * (1 - pdr) + 100);
 
-const ws = new WebSocket("ws://localhost:8464");
+const hostName = window.location.hostname;
+const ws = new WebSocket(`ws://${hostName}:8464`);
 
 ws.onopen = () => {
     console.log("WebSocket connection established.");

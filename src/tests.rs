@@ -171,7 +171,7 @@ fn client_server_ping() {
 
 #[test]
 fn continuous_ping() {
-    let ping_count = 10;
+    let ping_count = 600;
 
     let client = TestNode::with_node_id(40, vec![3], move |params| {
         println!("Client running");
