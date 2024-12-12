@@ -170,8 +170,81 @@ fn client_server_ping() {
 }
 
 #[test]
-fn continuous_ping() {
-    let ping_count = 600;
+fn continuous_ping_one_hour() {
+    let ping_count = 3600;
+
+    let client = TestNode::with_node_id(40, vec![3], move |params| {
+        println!("Client running");
+
+        for i in 0..ping_count {
+            let packet = Packet::new_fragment(
+                SourceRoutingHeader::with_first_hop(vec![40, 3, 4, 6, 8, 50]),
+                0,
+                Fragment::from_string(i, ping_count, "Hello, world!".to_string()),
+            );
+
+            params.packet_send.get(&3).unwrap().send(packet).ok();
+
+            thread::sleep(Duration::from_millis(1000));
+
+            for packet in params.packet_recv.try_iter() {
+                if let PacketType::MsgFragment(response) = packet.pack_type {
+                    println!("Client {} received {}", params.id, response);
+                }
+            }
+        }
+
+        println!("Client {} ending simulation", params.id);
+
+        params.end_simulation()
+    });
+
+    let server = TestNode::with_node_id(50, vec![8], |params| {
+        println!("Server running");
+
+        thread::sleep(Duration::from_millis(500));
+
+        for in_packet in params.packet_recv.iter() {
+            if let PacketType::MsgFragment(request) = in_packet.pack_type {
+                println!("Server {} received {}", params.id, request);
+
+                let packet = Packet::new_fragment(
+                    SourceRoutingHeader::with_first_hop(vec![50, 8, 7, 5, 3, 40]),
+                    0,
+                    request.clone(),
+                );
+
+                let send = params.packet_send.get(&8).unwrap();
+
+                send.send(packet).ok();
+
+                if request.fragment_index == request.total_n_fragments - 1 {
+                    while !send.is_empty() {
+                        thread::sleep(Duration::from_millis(100));
+                    }
+                    break;
+                }
+            }
+        }
+        println!("Server {} ending simulation", params.id);
+
+        thread::sleep(Duration::from_millis(1000));
+        params.end_simulation()
+    });
+
+    create_test_environment(
+        "topologies/examples/double-chain/topology.toml",
+        vec![client, server],
+        PDRPolicy::Medium,
+        create_bagel_bomber,
+        create_none_client_server,
+        create_none_client_server,
+    )
+}
+
+#[test]
+fn continuous_ping_ten_seconds() {
+    let ping_count = 10;
 
     let client = TestNode::with_node_id(40, vec![3], move |params| {
         println!("Client running");

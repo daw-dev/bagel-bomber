@@ -57,7 +57,9 @@ impl Drone for BagelBomber {
 impl BagelBomber {
     fn run_internal(&mut self) {
         println!("drone {} flying", self.id);
-        drone_gui::add_gui(self.id, self.pdr);
+        if cfg!(all(feature = "gui", not(test))) {
+            drone_gui::add_gui(self.id, self.pdr);
+        }
         while self.active {
             select_biased! {
                 recv(self.controller_recv) -> command_res => {
@@ -72,7 +74,9 @@ impl BagelBomber {
                 }
             }
         }
-        drone_gui::remove_gui(self.id);
+        if cfg!(all(feature = "gui", not(test))) {
+            drone_gui::remove_gui(self.id);
+        }
     }
 
     fn handle_command(&mut self, command: DroneCommand) {
@@ -86,7 +90,9 @@ impl BagelBomber {
             }
             DroneCommand::SetPacketDropRate(pdr) => {
                 self.pdr = pdr;
-                drone_gui::change_pdr(self.id, self.pdr);
+                if cfg!(all(feature = "gui", not(test))) {
+                    drone_gui::change_pdr(self.id, self.pdr);
+                }
             }
             DroneCommand::RemoveSender(id) => {
                 self.packet_send.remove(&id);
@@ -152,10 +158,14 @@ impl BagelBomber {
                 Some(sender) => {
                     if let PacketType::MsgFragment(_) = &packet.pack_type {
                         if coin_toss::toss_coin(self.pdr) {
-                            drone_gui::drop_bagel(self.id, true);
+                            if cfg!(all(feature = "gui", not(test))) {
+                                drone_gui::drop_bagel(self.id, true);
+                            }
                             PacketHandler::Nack(NackType::Dropped)
                         } else {
-                            drone_gui::drop_bagel(self.id, false);
+                            if cfg!(all(feature = "gui", not(test))) {
+                                drone_gui::drop_bagel(self.id, false);
+                            }
                             PacketHandler::Forward(sender)
                         }
                     } else {
