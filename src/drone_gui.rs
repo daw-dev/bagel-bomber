@@ -17,7 +17,7 @@ lazy_static! {
 
 const DRONE_GUI_PORT: u16 = 8463;
 
-enum ServerMessage {
+pub enum ServerMessage {
     DroneAdded(NodeId, f32),
     DroneRemoved(NodeId),
     PDRChanged(NodeId, f32),

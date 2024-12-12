@@ -7,6 +7,7 @@ use wg_2024::controller::*;
 use wg_2024::drone::*;
 use wg_2024::network::{NodeId, SourceRoutingHeader};
 use wg_2024::packet::{FloodRequest, Nack, NackType, NodeType, Packet, PacketType};
+use crate::drone_gui::ServerMessage;
 
 enum PacketHandler<'a> {
     Forward(&'a Sender<Packet>),
@@ -25,6 +26,8 @@ pub struct BagelBomber {
     pdr: f32,
     active: bool,
     flood_history: HashSet<(NodeId, u64)>,
+    #[cfg(feature = "gui")]
+    gui_sender: Option<Sender<ServerMessage>>,
 }
 
 impl Drone for BagelBomber {
@@ -45,6 +48,8 @@ impl Drone for BagelBomber {
             pdr,
             active: false,
             flood_history: HashSet::new(),
+            #[cfg(feature = "gui")]
+            gui_sender: None,
         }
     }
 
@@ -57,9 +62,9 @@ impl Drone for BagelBomber {
 impl BagelBomber {
     fn run_internal(&mut self) {
         println!("drone {} flying", self.id);
-        if cfg!(all(feature = "gui", not(test))) {
-            drone_gui::add_gui(self.id, self.pdr);
-        }
+        #[cfg(all(feature = "gui", not(test)))]
+        drone_gui::add_gui(self.id, self.pdr);
+
         while self.active {
             select_biased! {
                 recv(self.controller_recv) -> command_res => {
@@ -74,9 +79,8 @@ impl BagelBomber {
                 }
             }
         }
-        if cfg!(all(feature = "gui", not(test))) {
-            drone_gui::remove_gui(self.id);
-        }
+        #[cfg(all(feature = "gui", not(test)))]
+        drone_gui::remove_gui(self.id);
     }
 
     fn handle_command(&mut self, command: DroneCommand) {
@@ -90,9 +94,8 @@ impl BagelBomber {
             }
             DroneCommand::SetPacketDropRate(pdr) => {
                 self.pdr = pdr;
-                if cfg!(all(feature = "gui", not(test))) {
-                    drone_gui::change_pdr(self.id, self.pdr);
-                }
+                #[cfg(all(feature = "gui", not(test)))]
+                drone_gui::change_pdr(self.id, self.pdr);
             }
             DroneCommand::RemoveSender(id) => {
                 self.packet_send.remove(&id);
@@ -108,9 +111,9 @@ impl BagelBomber {
             PacketHandler::Nack(nack) => {
                 let fragment_index = packet.get_fragment_index();
                 if let PacketType::Nack(Nack {
-                    nack_type: NackType::Dropped,
-                    ..
-                }) = &packet.pack_type
+                                            nack_type: NackType::Dropped,
+                                            ..
+                                        }) = &packet.pack_type
                 {
                     self.controller_send
                         .send(DroneEvent::PacketDropped(packet.clone()))
@@ -158,14 +161,12 @@ impl BagelBomber {
                 Some(sender) => {
                     if let PacketType::MsgFragment(_) = &packet.pack_type {
                         if coin_toss::toss_coin(self.pdr) {
-                            if cfg!(all(feature = "gui", not(test))) {
-                                drone_gui::drop_bagel(self.id, true);
-                            }
+                            #[cfg(all(feature = "gui", not(test)))]
+                            drone_gui::drop_bagel(self.id, true);
                             PacketHandler::Nack(NackType::Dropped)
                         } else {
-                            if cfg!(all(feature = "gui", not(test))) {
-                                drone_gui::drop_bagel(self.id, false);
-                            }
+                            #[cfg(all(feature = "gui", not(test)))]
+                            drone_gui::drop_bagel(self.id, false);
                             PacketHandler::Forward(sender)
                         }
                     } else {
