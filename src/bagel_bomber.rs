@@ -7,7 +7,7 @@ use wg_2024::controller::*;
 use wg_2024::drone::*;
 use wg_2024::network::{NodeId, SourceRoutingHeader};
 use wg_2024::packet::{FloodRequest, Nack, NackType, NodeType, Packet, PacketType};
-use crate::drone_gui::ServerMessage;
+use crate::drone_gui::GUIMessage;
 
 enum PacketHandler<'a> {
     Forward(&'a Sender<Packet>),
@@ -27,7 +27,7 @@ pub struct BagelBomber {
     active: bool,
     flood_history: HashSet<(NodeId, u64)>,
     #[cfg(feature = "gui")]
-    gui_sender: Option<Sender<ServerMessage>>,
+    gui_sender: Option<Sender<GUIMessage>>,
 }
 
 impl Drone for BagelBomber {
@@ -63,7 +63,7 @@ impl BagelBomber {
     fn run_internal(&mut self) {
         println!("drone {} flying", self.id);
         #[cfg(all(feature = "gui", not(test)))]
-        drone_gui::add_gui(self.id, self.pdr);
+        drone_gui::add_gui(self.id, self.pdr, &mut self.gui_sender);
 
         while self.active {
             select_biased! {
@@ -80,7 +80,7 @@ impl BagelBomber {
             }
         }
         #[cfg(all(feature = "gui", not(test)))]
-        drone_gui::remove_gui(self.id);
+        drone_gui::remove_gui(self.id, &mut self.gui_sender);
     }
 
     fn handle_command(&mut self, command: DroneCommand) {
@@ -95,7 +95,7 @@ impl BagelBomber {
             DroneCommand::SetPacketDropRate(pdr) => {
                 self.pdr = pdr;
                 #[cfg(all(feature = "gui", not(test)))]
-                drone_gui::change_pdr(self.id, self.pdr);
+                drone_gui::change_pdr(self.id, self.pdr, &self.gui_sender);
             }
             DroneCommand::RemoveSender(id) => {
                 self.packet_send.remove(&id);
@@ -162,11 +162,11 @@ impl BagelBomber {
                     if let PacketType::MsgFragment(_) = &packet.pack_type {
                         if coin_toss::toss_coin(self.pdr) {
                             #[cfg(all(feature = "gui", not(test)))]
-                            drone_gui::drop_bagel(self.id, true);
+                            drone_gui::drop_bagel(self.id, true, &self.gui_sender);
                             PacketHandler::Nack(NackType::Dropped)
                         } else {
                             #[cfg(all(feature = "gui", not(test)))]
-                            drone_gui::drop_bagel(self.id, false);
+                            drone_gui::drop_bagel(self.id, false, &self.gui_sender);
                             PacketHandler::Forward(sender)
                         }
                     } else {
