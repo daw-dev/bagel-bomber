@@ -176,7 +176,7 @@ fn handle_web_socket_connection(
                     let response =
                         format!("{{ \"pdr\": {}, \"drops\": [ {} ] }}", gui.pdr, drops);
 
-                    if web_socket.write(Message::Text(response)).is_err() {
+                    if web_socket.write(Message::Text(response.into())).is_err() {
                         break;
                     }
 
