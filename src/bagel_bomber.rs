@@ -63,11 +63,6 @@ impl BagelBomber {
     fn run_internal(&mut self) {
         println!("drone {} flying", self.id);
 
-        #[cfg(feature = "debug")]
-        for (id, _) in self.packet_send.iter() {
-            println!("Drone {} has sender to {}", self.id, id);
-        }
-
         #[cfg(all(feature = "gui", not(test)))]
         drone_gui::add_gui(self.id, self.pdr, &mut self.gui_sender);
 
