@@ -16,6 +16,7 @@ drone_tester = { git = "https://github.com/daw-dev/drone-tester.git" }
 
 [features]
 gui = []
+debug = []
 default = ["gui"]
 
 [[example]]
