@@ -241,7 +241,10 @@ fn handle_icon() -> Response<Cursor<Vec<u8>>> {
 
 fn handle_style() -> Response<Cursor<Vec<u8>>> {
     let file = fs::read_to_string("assets/style.css")
-        .unwrap_or("body { background-color: #f0f0f0; }".to_string());
+        .unwrap_or_else(|err| {
+            println!("Error reading style.css: {}", err);
+            "body { background-color: #f0f0f0; }".to_string()
+        });
     Response::from_string(file).with_header("Content-Type: text/css".parse::<Header>().unwrap())
 }
 
