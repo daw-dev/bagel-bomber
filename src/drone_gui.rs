@@ -228,7 +228,7 @@ fn handle_root(guis: HashMap<NodeId, DroneGUI>) -> Response<Cursor<Vec<u8>>> {
         .with_header("Content-Type: text/html".parse::<Header>().unwrap())
 }
 
-fn icon_file() -> &'static [u8] {
+const fn icon_file() -> &'static [u8] {
     include_bytes!("../assets/bagel.png")
 }
 
@@ -237,7 +237,7 @@ fn handle_icon() -> Response<Cursor<Vec<u8>>> {
         .with_header("Content-Type: image/png".parse::<Header>().unwrap())
 }
 
-fn style_file() -> &'static str {
+const fn style_file() -> &'static str {
     include_str!("../assets/style.css")
 }
 
@@ -249,7 +249,7 @@ fn handle_drone(drone_gui: &DroneGUI) -> Response<Cursor<Vec<u8>>> {
     drone_gui.drone_page()
 }
 
-fn script_file() -> &'static str {
+const fn script_file() -> &'static str {
     include_str!("../assets/script.js")
 }
 
