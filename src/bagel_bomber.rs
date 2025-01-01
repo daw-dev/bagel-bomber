@@ -61,6 +61,7 @@ impl Drone for BagelBomber {
 
 impl BagelBomber {
     fn run_internal(&mut self) {
+        #[cfg(feature = "debug")]
         println!("drone {} flying", self.id);
 
         #[cfg(all(feature = "gui", not(test)))]
@@ -90,6 +91,7 @@ impl BagelBomber {
                 self.packet_send.insert(id, sender);
             }
             DroneCommand::Crash => {
+                #[cfg(feature = "debug")]
                 println!("Drone {} crashed", self.id);
                 self.stop();
             }

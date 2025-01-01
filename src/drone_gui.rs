@@ -107,6 +107,7 @@ fn http_daemon() {
         }
     }
 
+    #[cfg(feature = "debug")]
     println!("HTTP server shutting down");
 }
 
@@ -126,8 +127,7 @@ fn web_socket_daemon() {
                 SERVER_JOIN_HANDLES.lock().unwrap().push(web_socket_updates);
             }
             Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {}
-            Err(err) => {
-                println!("Error: {}", err);
+            Err(_) => {
             }
         }
 
@@ -136,6 +136,7 @@ fn web_socket_daemon() {
         }
     }
 
+    #[cfg(feature = "debug")]
     println!("WebSocket server shutting down");
 }
 
@@ -190,6 +191,7 @@ fn handle_web_socket_connection(
             }
 
             // TODO: this doesn't seem to work
+            #[cfg(feature = "debug")]
             println!("WebSocket connection closed");
         }
     }
