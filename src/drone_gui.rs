@@ -1,20 +1,19 @@
 use crossbeam_channel::Sender;
-use lazy_static::lazy_static;
-use std::{collections::HashMap, fs, io::Cursor, mem, sync::Mutex, thread, thread::JoinHandle};
-use tiny_http::{Header, Method, Request, Response, Server};
-use wg_2024::network::NodeId;
 use crossbeam_channel::{unbounded, Receiver};
+use lazy_static::lazy_static;
 use std::collections::VecDeque;
 use std::net::{TcpListener, TcpStream};
 use std::time::{Duration, SystemTime};
+use std::{collections::HashMap, io::Cursor, mem, sync::Mutex, thread, thread::JoinHandle};
+use tiny_http::{Header, Method, Request, Response, Server};
 use tungstenite::{Message, WebSocket};
+use wg_2024::network::NodeId;
 
 lazy_static! {
     static ref SENDER: Mutex<Option<Sender<GUIMessage>>> = Mutex::new(None);
 }
 lazy_static! {
-    static ref GUIS: Mutex<HashMap<NodeId, DroneGUI>> =
-        Mutex::new(HashMap::new());
+    static ref GUIS: Mutex<HashMap<NodeId, DroneGUI>> = Mutex::new(HashMap::new());
 }
 lazy_static! {
     static ref SERVER_JOIN_HANDLES: Mutex<Vec<JoinHandle<()>>> = Mutex::new(Vec::new());
@@ -127,8 +126,7 @@ fn web_socket_daemon() {
                 SERVER_JOIN_HANDLES.lock().unwrap().push(web_socket_updates);
             }
             Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {}
-            Err(_) => {
-            }
+            Err(_) => {}
         }
 
         if SENDER.lock().unwrap().is_none() {
@@ -140,10 +138,7 @@ fn web_socket_daemon() {
     println!("WebSocket server shutting down");
 }
 
-fn handle_web_socket_connection(
-    mut web_socket: WebSocket<TcpStream>,
-    starting_time: SystemTime,
-) {
+fn handle_web_socket_connection(mut web_socket: WebSocket<TcpStream>, starting_time: SystemTime) {
     let message = loop {
         if let Ok(message) = web_socket.read() {
             break message;
@@ -174,8 +169,7 @@ fn handle_web_socket_connection(
                     .join(", ");
 
                 if gui.pdr != last_pdr || !drops.is_empty() {
-                    let response =
-                        format!("{{ \"pdr\": {}, \"drops\": [ {} ] }}", gui.pdr, drops);
+                    let response = format!("{{ \"pdr\": {}, \"drops\": [ {} ] }}", gui.pdr, drops);
 
                     if web_socket.write(Message::Text(response.into())).is_err() {
                         break;
@@ -208,14 +202,14 @@ fn handle_http_request(request: Request, guis: HashMap<NodeId, DroneGUI>) {
             (Method::Get, "/script") => handle_script(),
             (Method::Get, "/bagel.png") => handle_icon(),
             (Method::Get, path)
-            if path.starts_with("/")
-                && path[1..].parse::<NodeId>().is_ok()
-                && guis.contains_key(&path[1..].parse().unwrap()) =>
-                {
-                    let id = path[1..].parse::<NodeId>().unwrap();
-                    let drone_gui = guis.get(&id).unwrap();
-                    handle_drone(drone_gui)
-                }
+                if path.starts_with("/")
+                    && path[1..].parse::<NodeId>().is_ok()
+                    && guis.contains_key(&path[1..].parse().unwrap()) =>
+            {
+                let id = path[1..].parse::<NodeId>().unwrap();
+                let drone_gui = guis.get(&id).unwrap();
+                handle_drone(drone_gui)
+            }
             _ => handle_not_found(),
         };
 
@@ -234,28 +228,33 @@ fn handle_root(guis: HashMap<NodeId, DroneGUI>) -> Response<Cursor<Vec<u8>>> {
         .with_header("Content-Type: text/html".parse::<Header>().unwrap())
 }
 
+fn icon_file() -> &'static [u8] {
+    include_bytes!("../assets/bagel.png")
+}
+
 fn handle_icon() -> Response<Cursor<Vec<u8>>> {
-    let image = fs::read("assets/bagel.png").unwrap_or_default();
-    Response::from_data(image).with_header("Content-Type: image/png".parse::<Header>().unwrap())
+    Response::from_data(icon_file())
+        .with_header("Content-Type: image/png".parse::<Header>().unwrap())
+}
+
+fn style_file() -> &'static str {
+    include_str!("../assets/style.css")
 }
 
 fn handle_style() -> Response<Cursor<Vec<u8>>> {
-    let file = fs::read_to_string("assets/style.css")
-        .unwrap_or_else(|err| {
-            println!("Error reading style.css: {}", err);
-            "body { background-color: #f0f0f0; }".to_string()
-        });
-    Response::from_string(file).with_header("Content-Type: text/css".parse::<Header>().unwrap())
+    Response::from_string(style_file()).with_header("Content-Type: text/css".parse::<Header>().unwrap())
 }
 
 fn handle_drone(drone_gui: &DroneGUI) -> Response<Cursor<Vec<u8>>> {
     drone_gui.drone_page()
 }
 
+fn script_file() -> &'static str {
+    include_str!("../assets/script.js")
+}
+
 fn handle_script() -> Response<Cursor<Vec<u8>>> {
-    let file = fs::read_to_string("assets/script.js")
-        .unwrap_or("console.log('Hello, world!');".to_string());
-    Response::from_string(file)
+    Response::from_string(script_file())
         .with_header("Content-Type: text/javascript".parse::<Header>().unwrap())
 }
 
