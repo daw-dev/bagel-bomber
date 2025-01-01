@@ -230,7 +230,7 @@ impl BagelBomber {
 
         request.path_trace.push((self.id, NodeType::Drone));
 
-        let recipient = request.path_trace.last().map(|(id, _)| id).unwrap_or(&0);
+        let recipient = request.path_trace.last().map(|(id, _)| id);
 
         if self.flood_history.contains(&(initiator_id, flood_id)) {
             let mut response = request.generate_response(session_id);
@@ -239,7 +239,7 @@ impl BagelBomber {
         } else {
             self.flood_history.insert((initiator_id, flood_id));
             for (id, sender) in self.packet_send.iter() {
-                if id == recipient {
+                if Some(id) == recipient {
                     continue;
                 }
 
