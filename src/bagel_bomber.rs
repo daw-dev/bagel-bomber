@@ -62,7 +62,7 @@ impl Drone for BagelBomber {
 impl BagelBomber {
     fn run_internal(&mut self) {
         #[cfg(feature = "debug")]
-        println!("drone {} flying", self.id);
+        println!("BagelBomber {} flying", self.id);
 
         #[cfg(all(feature = "gui", not(test)))]
         drone_gui::add_gui(self.id, self.pdr, &mut self.gui_sender);
@@ -92,7 +92,7 @@ impl BagelBomber {
             }
             DroneCommand::Crash => {
                 #[cfg(feature = "debug")]
-                println!("Drone {} crashed", self.id);
+                println!("BagelBomber {} crashed", self.id);
                 self.stop();
             }
             DroneCommand::SetPacketDropRate(pdr) => {
@@ -108,17 +108,17 @@ impl BagelBomber {
 
     fn handle_packet(&mut self, packet: Packet) {
         #[cfg(feature = "debug")]
-        println!("Drone {} received packet {}", self.id, packet);
+        println!("BagelBomber {} received packet {}", self.id, packet);
 
         match self.create_packet_handler(packet.clone()) {
             PacketHandler::Forward(sender) => {
                 #[cfg(feature = "debug")]
-                println!("Drone {} forwarding packet", self.id);
+                println!("BagelBomber {} forwarding packet", self.id);
                 self.forward(packet, sender);
             }
             PacketHandler::Nack(nack) => {
                 #[cfg(feature = "debug")]
-                println!("Drone {} sending nack {:?}", self.id, nack);
+                println!("BagelBomber {} sending nack {:?}", self.id, nack);
                 let fragment_index = packet.get_fragment_index();
                 if let PacketType::Nack(Nack {
                                             nack_type: NackType::Dropped,
@@ -140,21 +140,21 @@ impl BagelBomber {
             }
             PacketHandler::FloodRequest => {
                 #[cfg(feature = "debug")]
-                println!("Drone {} handling flood request", self.id);
+                println!("BagelBomber {} handling flood request", self.id);
                 if let PacketType::FloodRequest(request) = packet.pack_type {
                     self.handle_flood_request(packet.routing_header, packet.session_id, request);
                 }
             }
             PacketHandler::SendToController => {
                 #[cfg(feature = "debug")]
-                println!("Drone {} sending packet to controller", self.id);
+                println!("BagelBomber {} sending packet to controller", self.id);
                 self.controller_send
                     .send(DroneEvent::ControllerShortcut(packet.clone()))
                     .ok();
             }
             PacketHandler::Ignore => {
                 #[cfg(feature = "debug")]
-                println!("Drone {} ignoring packet", self.id);
+                println!("BagelBomber {} ignoring packet", self.id);
             }
         }
     }
