@@ -228,9 +228,9 @@ impl BagelBomber {
         let flood_id = request.flood_id;
         let initiator_id = request.initiator_id;
 
-        request.increment(self.id, NodeType::Drone);
-
         let recipient = request.path_trace.last().map_or(initiator_id, |(id, _)| *id);
+        
+        request.increment(self.id, NodeType::Drone);
 
         if self.flood_history.contains(&(initiator_id, flood_id)) {
             let mut response = request.generate_response(session_id);
