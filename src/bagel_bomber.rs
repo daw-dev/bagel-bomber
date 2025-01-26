@@ -255,10 +255,10 @@ impl BagelBomber {
         }
     }
     fn forward(&self, mut packet: Packet, channel: &Sender<Packet>) {
+        packet.routing_header.increase_hop_index();
         self.controller_send
             .send(DroneEvent::PacketSent(packet.clone()))
             .ok();
-        packet.routing_header.increase_hop_index();
         channel.send(packet).ok();
     }
 
