@@ -120,10 +120,7 @@ impl BagelBomber {
                 #[cfg(feature = "debug")]
                 println!("BagelBomber {} sending nack {:?}", self.id, nack);
                 let fragment_index = packet.get_fragment_index();
-                if let PacketType::Nack(Nack {
-                                            nack_type: NackType::Dropped,
-                                            ..
-                                        }) = &packet.pack_type
+                if let NackType::Dropped = &nack
                 {
                     self.controller_send
                         .send(DroneEvent::PacketDropped(packet.clone()))
